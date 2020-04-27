@@ -13,7 +13,7 @@ class SignUpViewController: UIViewController {
     @IBOutlet weak var signUpButton: UIButton!
     @IBOutlet weak var nameTextFiled: UITextField!
     @IBOutlet weak var passwordTextFiled: UITextField!
-
+    var usersss : LoginUser?
     @IBOutlet weak var emailTextFiled: UITextField!
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,21 +30,32 @@ class SignUpViewController: UIViewController {
         request.httpMethod = "POST"
         request.httpBody = param.queryString.data(using: .utf8)
 
+
         URLSession.shared.dataTask(with: request) { (data, httpresponse, error) in
-            if let data = data {
-                do{
-                    let encoder = JSONDecoder()
-                    let user = try encoder.decode(LoginUser.self, from: data)
-                    UserInfo.shared.info = user
-                    print("data == > \(user)")
-                    NotificationCenter.default.post(name: .loginSucess, object: nil)
+            if let err = error {
+                return
+            }
 
-                    DispatchQueue.main.async {                                            self.dismiss(animated: true, completion: nil)
-                    }
+            guard let httpResponse = httpresponse as? HTTPURLResponse else {
+                return
+            }
+            guard (200..<400).contains(httpResponse.statusCode) else {return}
 
-                }catch{
-                    print("ERROR -> \(error)")
+            guard let data = data else {return}
+
+            do{
+                let encoder = JSONDecoder()
+                let user = try encoder.decode(LoginUser.self, from: data)
+                self.usersss = user
+                UserInfo.shared.info = user
+                print("data == > \(user)")
+                NotificationCenter.default.post(name: .loginSucess, object: nil)
+
+                DispatchQueue.main.async {                                            self.dismiss(animated: true, completion: nil)
                 }
+
+            }catch{
+                print(error)
             }
         }.resume()
 
